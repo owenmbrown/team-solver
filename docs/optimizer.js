@@ -339,7 +339,7 @@ class TeamOptimizer {
         const maxIterations = 100;
 
         for (let iteration = 0; iteration < maxIterations; iteration++) {
-            const teams = this.decode(individual);
+            const teams = this.decodeIndividual(individual);
             const teamSizes = teams.map(t => t.players.length);
             const minSize = Math.min(...teamSizes);
             const maxSize = Math.max(...teamSizes);
