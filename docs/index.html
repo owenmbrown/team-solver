@@ -40,8 +40,11 @@
             </div>
             <div class="form-group">
                 <label for="generations">Generations (optimization quality):</label>
-                <input type="range" id="generations" min="100" max="1000" value="500" step="50">
-                <span id="generationsValue">500</span>
+                <input type="range" id="generations" min="100" max="1000" value="300" step="50">
+                <span id="generationsValue">300</span>
+                <p style="font-size: 0.875rem; opacity: 0.8; margin-top: 0.25rem;">
+                    Higher = better results but slower (300 recommended for web)
+                </p>
             </div>
             <button id="optimizeBtn" class="btn-primary">Optimize Teams</button>
         </div>

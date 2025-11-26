@@ -564,7 +564,10 @@ class TeamOptimizer {
         return [...competitors[0].individual];
     }
 
-    optimize() {
+    async optimize() {
+        // Helper to yield to the event loop
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        
         // Create initial population
         let population = Array.from({ length: this.populationSize }, () => this.createIndividual());
 
@@ -583,14 +586,17 @@ class TeamOptimizer {
                 bestIndividual = [...population[minIdx]];
             }
 
-            // Report progress
-            if (this.onProgress && gen % 50 === 0) {
+            // Report progress more frequently
+            if (this.onProgress && gen % 10 === 0) {
                 const avgFitness = fitnesses.reduce((a, b) => a + b, 0) / fitnesses.length;
                 this.onProgress({
                     generation: gen,
                     bestFitness: bestFitness,
                     avgFitness: avgFitness
                 });
+                
+                // Yield to the event loop every 10 generations to keep UI responsive
+                await sleep(0);
             }
 
             // Create next generation

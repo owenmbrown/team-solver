@@ -168,29 +168,36 @@ function runOptimization() {
     resultsSection.style.display = 'none';
     optimizeBtn.disabled = true;
     
-    // Run optimization (use setTimeout to allow UI to update)
-    setTimeout(() => {
-        const optimizer = new TeamOptimizer(players, numTeams, {
-            populationSize: 300,
-            generations: generations,
-            onProgress: (progress) => {
-                const percent = (progress.generation / generations) * 100;
-                progressFill.style.width = percent + '%';
-                progressText.textContent = `Generation ${progress.generation}/${generations} - Best Fitness: ${progress.bestFitness.toFixed(2)}`;
-                
-                if (progress.completed) {
-                    progressText.textContent = 'Optimization complete!';
-                    setTimeout(() => {
-                        displayResults(optimizedTeams);
-                        progressSection.style.display = 'none';
-                        optimizeBtn.disabled = false;
-                    }, 500);
+    // Run optimization asynchronously
+    (async () => {
+        try {
+            const optimizer = new TeamOptimizer(players, numTeams, {
+                populationSize: 300,
+                generations: generations,
+                onProgress: (progress) => {
+                    const percent = (progress.generation / generations) * 100;
+                    progressFill.style.width = percent + '%';
+                    progressText.textContent = `Generation ${progress.generation}/${generations} - Best Fitness: ${progress.bestFitness.toFixed(2)}`;
                 }
-            }
-        });
-        
-        optimizedTeams = optimizer.optimize();
-    }, 100);
+            });
+            
+            optimizedTeams = await optimizer.optimize();
+            
+            // Display results
+            progressText.textContent = 'Optimization complete!';
+            setTimeout(() => {
+                displayResults(optimizedTeams);
+                progressSection.style.display = 'none';
+                optimizeBtn.disabled = false;
+            }, 500);
+            
+        } catch (error) {
+            console.error('Optimization error:', error);
+            alert('An error occurred during optimization: ' + error.message);
+            progressSection.style.display = 'none';
+            optimizeBtn.disabled = false;
+        }
+    })();
 }
 
 function displayResults(teams) {
