@@ -182,12 +182,6 @@ class TeamOptimizer:
             if team.get_position_count('OF') < 3:
                 return False
             
-            # Check pitcher attendance rule
-            pitchers = [p for p in team.players if p.position == 'P']
-            if pitchers:
-                has_perfect_attendance = any(p.attendance >= 1.0 for p in pitchers)
-                if not has_perfect_attendance and len(pitchers) < 2:
-                    return False
         
         return True
     
@@ -209,14 +203,6 @@ class TeamOptimizer:
                 if self._fix_missing_position(individual, teams, team_id, 'OF'):
                     return True
             
-            # Check pitcher attendance rule
-            pitchers = [p for p in team.players if p.position == 'P']
-            if pitchers:
-                has_perfect_attendance = any(p.attendance >= 1.0 for p in pitchers)
-                if not has_perfect_attendance and len(pitchers) < 2:
-                    # Need a second pitcher
-                    if self._fix_missing_position(individual, teams, team_id, 'P'):
-                        return True
         
         return False  # Couldn't fix anything
     
@@ -308,13 +294,6 @@ class TeamOptimizer:
                 if count < 1:
                     penalty += 10000.0  # CRITICAL penalty for missing position
             
-            # Special pitcher rule: need 2 pitchers unless we have 1 with perfect attendance
-            pitchers = [p for p in team.players if p.position == 'P']
-            if len(pitchers) > 0:
-                # Check if any pitcher has perfect attendance (1.0)
-                has_perfect_attendance_pitcher = any(p.attendance >= 1.0 for p in pitchers)
-                if not has_perfect_attendance_pitcher and len(pitchers) < 2:
-                    penalty += 10000.0  # CRITICAL penalty - need 2 pitchers if none have perfect attendance
             
             # Need at least 2 additional OF (total OF should be >= 3, including CF)
             total_of = team.get_position_count('OF')

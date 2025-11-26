@@ -164,15 +164,6 @@ class TeamOptimizer {
                 }
             });
 
-            // Special pitcher rule: need 2 pitchers unless we have 1 with perfect attendance
-            const pitchers = team.players.filter(p => p.position === 'P');
-            if (pitchers.length > 0) {
-                // Check if any pitcher has perfect attendance (1.0)
-                const hasPerfectAttendancePitcher = pitchers.some(p => p.attendance >= 1.0);
-                if (!hasPerfectAttendancePitcher && pitchers.length < 2) {
-                    penalty += 10000; // CRITICAL penalty - need 2 pitchers if none have perfect attendance
-                }
-            }
 
             // Need at least 3 total OF (including CF)
             const totalOF = team.getPositionCount('OF');
@@ -426,14 +417,6 @@ class TeamOptimizer {
                 return false;
             }
 
-            // Check pitcher attendance rule
-            const pitchers = team.players.filter(p => p.position === 'P');
-            if (pitchers.length > 0) {
-                const hasPerfectAttendance = pitchers.some(p => p.attendance >= 1.0);
-                if (!hasPerfectAttendance && pitchers.length < 2) {
-                    return false;
-                }
-            }
         }
 
         return true;
@@ -460,16 +443,6 @@ class TeamOptimizer {
                 }
             }
 
-            // Check pitcher attendance rule
-            const pitchers = team.players.filter(p => p.position === 'P');
-            if (pitchers.length > 0) {
-                const hasPerfectAttendance = pitchers.some(p => p.attendance >= 1.0);
-                if (!hasPerfectAttendance && pitchers.length < 2) {
-                    if (this.fixMissingPosition(individual, teams, teamId, 'P')) {
-                        return true;
-                    }
-                }
-            }
         }
 
         return false;

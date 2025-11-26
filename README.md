@@ -137,7 +137,7 @@ This approach ensures **hard constraints are never violated** (team sizes, posit
   - 1 Center Fielder (CF)
   - 1 Second Baseman (2B)
   - 1 Third Baseman (3B)
-  - **1-2 Pitchers (P)**: 1 pitcher if attendance is 100%, otherwise 2 pitchers required
+  - 1 Pitcher (P)
   - 1 First Baseman (1B)
   - 1 Catcher (C)
   - 2 additional Outfielders (total 3 OF including CF)
@@ -149,10 +149,9 @@ This approach ensures **hard constraints are never violated** (team sizes, posit
 ## 🎯 Optimization Goals
 
 **Hard Constraints** (structurally enforced, never violated):
-1. All required positions filled on each team
+1. All required positions filled on each team (including 1 pitcher minimum)
 2. Team sizes within 1 player of each other
 3. Car-pool groups kept together
-4. Pitcher attendance rule (1 pitcher if 100% attendance, else 2)
 
 **Soft Goals** (optimized via fitness function):
 1. **Skill balance** (highest priority): Teams should have similar average skill levels (< 1.0 difference)
