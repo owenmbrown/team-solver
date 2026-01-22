@@ -316,33 +316,45 @@ function displayResults(teams) {
 function exportResults() {
     if (!optimizedTeams) return;
     
-    const data = {
-        timestamp: new Date().toISOString(),
-        teams: optimizedTeams.map(team => ({
-            teamId: team.teamId + 1,
-            players: team.players.map(p => ({
-                name: p.name,
-                position: p.position,
-                totalScore: p.totalScore,
-                attendance: p.attendance,
-                isCoach: p.isCoach,
-                coAssignGroup: p.coAssignGroup
-            })),
-            statistics: {
-                avgSkill: team.getAverageSkill(),
-                avgAttendance: team.getAverageAttendance(),
-                skillVariance: team.getSkillVariance(),
-                positionCoverage: team.getPositionCoverage()
-            }
-        }))
-    };
+    // Find the maximum team size to determine number of rows
+    const maxTeamSize = Math.max(...optimizedTeams.map(team => team.players.length));
     
-    // Create downloadable JSON file
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    // Create worksheet data with teams as columns
+    const worksheetData = [];
+    
+    // Header row: Team labels
+    const headerRow = optimizedTeams.map(team => `Team ${team.teamId + 1}`);
+    worksheetData.push(headerRow);
+    
+    // Data rows: Player names, one per row
+    for (let row = 0; row < maxTeamSize; row++) {
+        const dataRow = optimizedTeams.map(team => {
+            if (row < team.players.length) {
+                return team.players[row].name;
+            }
+            return ''; // Empty cell if team has fewer players
+        });
+        worksheetData.push(dataRow);
+    }
+    
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    
+    // Set column widths for better readability
+    const colWidths = optimizedTeams.map(() => ({ wch: 20 }));
+    worksheet['!cols'] = colWidths;
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Teams');
+    
+    // Generate Excel file and download
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `team-assignments-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `team-assignments-${new Date().toISOString().split('T')[0]}.xlsx`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
