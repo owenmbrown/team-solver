@@ -82,7 +82,9 @@ class Team {
             'P': this.getPositionCount('P'),
             '1B': this.getPositionCount('1B'),
             'C': this.getPositionCount('C'),
-            'OF': this.getPositionCount('OF')
+            'OF': this.getPositionCount('OF'),
+            'CF2': this.getPositionCount('CF2'),
+            'X': this.getPositionCount('X')
         };
     }
 }
@@ -174,6 +176,27 @@ class TeamOptimizer {
             // Minimum team size
             if (team.players.length < 9) {
                 penalty += 2000 * (9 - team.players.length);
+            }
+        });
+
+        // Check even distribution of CF2 and X positions
+        const evenlyDistributedPositions = ['CF2', 'X'];
+        evenlyDistributedPositions.forEach(pos => {
+            const totalCount = this.players.filter(p => p.position === pos).length;
+            if (totalCount > 0) {
+                const countsPerTeam = teams.map(t => t.getPositionCount(pos));
+                const expectedPerTeam = totalCount / this.numTeams;
+                const minCount = Math.floor(expectedPerTeam);
+                const maxCount = Math.ceil(expectedPerTeam);
+                
+                // Penalize teams that deviate from expected distribution
+                countsPerTeam.forEach(count => {
+                    if (count < minCount) {
+                        penalty += 3000 * (minCount - count); // Heavy penalty for too few
+                    } else if (count > maxCount) {
+                        penalty += 3000 * (count - maxCount); // Heavy penalty for too many
+                    }
+                });
             }
         });
 
@@ -419,6 +442,25 @@ class TeamOptimizer {
 
         }
 
+        // Check even distribution of CF2 and X
+        const evenlyDistributedPositions = ['CF2', 'X'];
+        for (const pos of evenlyDistributedPositions) {
+            const totalCount = this.players.filter(p => p.position === pos).length;
+            if (totalCount > 0) {
+                const countsPerTeam = teams.map(t => t.getPositionCount(pos));
+                const expectedPerTeam = totalCount / this.numTeams;
+                const minCount = Math.floor(expectedPerTeam);
+                const maxCount = Math.ceil(expectedPerTeam);
+                
+                // Check if distribution is even (within 1 of expected)
+                for (const count of countsPerTeam) {
+                    if (count < minCount || count > maxCount) {
+                        return false;
+                    }
+                }
+            }
+        }
+
         return true;
     }
 
@@ -443,6 +485,42 @@ class TeamOptimizer {
                 }
             }
 
+        }
+
+        // Check and repair even distribution of CF2 and X
+        const evenlyDistributedPositions = ['CF2', 'X'];
+        for (const pos of evenlyDistributedPositions) {
+            const totalCount = this.players.filter(p => p.position === pos).length;
+            if (totalCount > 0) {
+                const countsPerTeam = teams.map(t => t.getPositionCount(pos));
+                const expectedPerTeam = totalCount / this.numTeams;
+                const minCount = Math.floor(expectedPerTeam);
+                const maxCount = Math.ceil(expectedPerTeam);
+                
+                // Find teams with too many or too few
+                for (let teamId = 0; teamId < teams.length; teamId++) {
+                    const count = countsPerTeam[teamId];
+                    if (count > maxCount) {
+                        // This team has too many, try to move one to a team with too few
+                        for (let otherTeamId = 0; otherTeamId < teams.length; otherTeamId++) {
+                            if (otherTeamId !== teamId && countsPerTeam[otherTeamId] < minCount) {
+                                if (this.swapPositionPlayer(individual, teams, teamId, otherTeamId, pos)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    } else if (count < minCount) {
+                        // This team has too few, try to get one from a team with too many
+                        for (let otherTeamId = 0; otherTeamId < teams.length; otherTeamId++) {
+                            if (otherTeamId !== teamId && countsPerTeam[otherTeamId] > maxCount) {
+                                if (this.swapPositionPlayer(individual, teams, otherTeamId, teamId, pos)) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         return false;
@@ -525,6 +603,16 @@ class TeamOptimizer {
         }
 
         return false;
+    }
+
+    getEvenDistributionTarget(position, numTeams) {
+        const totalCount = this.players.filter(p => p.position === position).length;
+        if (totalCount === 0) return { min: 0, max: 0 };
+        const expectedPerTeam = totalCount / numTeams;
+        return {
+            min: Math.floor(expectedPerTeam),
+            max: Math.ceil(expectedPerTeam)
+        };
     }
 
     tournamentSelection(population, fitnesses, tournamentSize = 3) {

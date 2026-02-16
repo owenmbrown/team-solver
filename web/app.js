@@ -243,6 +243,7 @@ function displayResults(teams) {
     teamsContainer.innerHTML = teams.map(team => {
         const coverage = team.getPositionCoverage();
         const requiredPositions = ['SS', 'CF', '2B', '3B', 'P', '1B', 'C', 'OF'];
+        const evenlyDistributedPositions = ['CF2', 'X'];
         
         // Sort players by position then skill
         const sortedPlayers = [...team.players].sort((a, b) => {
@@ -282,6 +283,17 @@ function displayResults(teams) {
                                 ${pos}: ${count}${isCovered ? ' ✓' : ' ✗'}
                             </span>
                         `;
+                    }).join('')}
+                    ${evenlyDistributedPositions.map(pos => {
+                        const count = coverage[pos] || 0;
+                        if (count > 0) {
+                            return `
+                                <span class="position-badge covered">
+                                    ${pos}: ${count} ✓
+                                </span>
+                            `;
+                        }
+                        return '';
                     }).join('')}
                 </div>
                 
